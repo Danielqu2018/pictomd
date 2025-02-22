@@ -106,6 +106,8 @@ pip install -r requirements.txt
    - `example_raw.txt`：清理后的原始文本
    - `example.md`：转换后的 Markdown 文件
 
+> 注意：生成的文件（`*_raw.txt` 和转换后的 `.md` 文件）不会被包含在版本控制中。
+
 ## 清理级别说明
 
 ### 级别 0：不清理
