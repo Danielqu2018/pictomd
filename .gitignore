@@ -56,7 +56,14 @@ virtualenv/
 .vs/
 
 # 项目特定文件
-uploads/           # 上传文件临时目录
+uploads/           # 上传文件目录
+*.txt             # 所有txt文件
+*.md              # 所有md文件
+!README.md        # 除了README.md
+!requirements.txt # 除了requirements.txt
+!LICENSE.txt      # 除了LICENSE.txt
+!CONTRIBUTING.md  # 除了CONTRIBUTING.md
+!CHANGELOG.md     # 除了CHANGELOG.md
 
 # 日志文件
 *.log
@@ -126,3 +133,31 @@ node_modules/
 .Python
 *.mo
 *.pot 
+
+# 图片文件
+*.png
+*.jpg
+*.jpeg
+*.tiff
+*.bmp
+*.gif
+*.webp
+
+# Word文档
+*.doc
+*.docx
+*.rtf
+
+# Excel文件
+*.xls
+*.xlsx
+*.xlsm
+*.xlsb
+*.xltx
+*.xltm
+
+# PDF文件
+*.pdf
+*.epub
+*.mobi
+
