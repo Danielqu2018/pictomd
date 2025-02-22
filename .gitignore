@@ -3,6 +3,8 @@ config.py
 .env
 *.ini
 *.cfg
+*.key
+secrets/
 
 # Python
 __pycache__/

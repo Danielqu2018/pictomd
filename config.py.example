@@ -1,0 +1,23 @@
+# API 配置
+API_KEY = "your_api_key_here"  # 替换为你的API密钥
+
+# OCR 配置
+TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Tesseract OCR 可执行文件路径
+POPPLER_PATH = r'C:\Program Files\poppler-24.08.0\Library\bin'   # Poppler 工具路径，用于PDF转图片
+
+# API 请求配置
+API_URL = "https://api.siliconflow.com/v1/chat/completions"  # API 端点
+MODEL_NAME = "deepseek-ai/DeepSeek-V3"  # 使用的模型名称
+
+# OCR 语言配置
+OCR_LANG = 'chi_sim+eng'  # OCR识别语言：简体中文+英文
+
+# LLM 配置
+TEMPERATURE = 0.7    # 生成文本的随机性，0-1之间，越大越随机
+MAX_TOKENS = 4096    # 生成文本的最大长度
+
+# 支持的图片格式
+SUPPORTED_IMAGE_FORMATS = {  # 支持处理的图片文件扩展名
+    '.png', '.jpg', '.jpeg', '.tiff', 
+    '.bmp', '.gif', '.webp'
+} 

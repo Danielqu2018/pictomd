@@ -7,6 +7,8 @@
 - 支持多种输入格式：
   - PDF文档（扫描版和文本版）
   - 图片文件（PNG, JPG, JPEG, TIFF, BMP, GIF, WEBP）
+  - Word文档（`.doc`, `.docx`）
+  - 文本文件（`.txt`, `.csv`, `.json`, `.xml`, `.html`, `.md`, `.rst`）
 - OCR 文字识别（基于 Tesseract）
 - 三级文本清理选项：
   - 不清理：保留所有OCR识别内容
@@ -43,7 +45,14 @@ pip install -r requirements.txt
 1. **Tesseract OCR**
    - 下载：[Tesseract-OCR installer](https://github.com/UB-Mannheim/tesseract/wiki)
    - 安装到：`C:\Program Files\Tesseract-OCR`
-   - 确保安装中文语言包（选择 Chinese (Simplified) 选项）
+   - 确保安装以下语言包：
+     - Chinese (Simplified) - 简体中文
+     - Chinese (Traditional) - 繁体中文
+     - English - 英文
+     - Japanese - 日文
+     - German - 德语
+     - French - 法语
+     - Arabic - 阿拉伯语
 
 2. **Poppler**
    - 下载：[poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases/)
@@ -70,6 +79,8 @@ pip install -r requirements.txt
    - 支持的文件格式：
      - PDF 文件（`.pdf`）
      - 图片文件（`.png`, `.jpg`, `.jpeg`, `.tiff`, `.bmp`, `.gif`, `.webp`）
+     - Word文档（`.doc`, `.docx`）
+     - 文本文件（`.txt`, `.csv`, `.json`, `.xml`, `.html`, `.md`, `.rst`）
 
 2. 运行程序：
    ```bash

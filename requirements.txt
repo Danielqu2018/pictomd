@@ -1,16 +1,22 @@
 # PDF处理
-pdf2image>=1.16.3    # PDF转图片
-PyMuPDF>=1.23.8      # PDF文本提取
+pdf2image>=1.16.3,<2.0.0    # PDF转图片
+PyMuPDF>=1.23.8,<2.0.0      # PDF文本提取
+
+# Word文档处理
+python-docx>=0.8.11,<1.0.0  # Word文档处理
 
 # OCR相关
-pytesseract>=0.3.10  # OCR文字识别
-Pillow>=10.0.0       # 图片处理
+pytesseract>=0.3.10,<0.4.0  # OCR文字识别
+Pillow>=10.0.0,<11.0.0      # 图片处理
 
 # HTTP请求
-requests>=2.31.0     # API调用
+requests>=2.31.0,<3.0.0     # API调用
 
 # 类型提示
-typing-extensions>=4.8.0  # Python类型提示扩展
+typing-extensions>=4.8.0,<5.0.0  # Python类型提示扩展
 
 # 路径处理
-pathlib>=1.0.1       # 路径处理工具 
+pathlib>=1.0.1,<2.0.0       # 路径处理工具 
+
+# 语言检测
+langdetect>=1.0.9,<2.0.0    # 语言检测 
