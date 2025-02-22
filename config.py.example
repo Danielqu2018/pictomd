@@ -39,13 +39,37 @@ SUPPORTED_TEXT_FORMATS = {  # 支持的文本格式
     '.doc', '.docx'  # Word文档格式
 }
 
-# OCR 配置
+# 语言清理配置
+LANGUAGE_CLEAN_CONFIG = {
+    'zh': {  # 中文（简体和繁体）
+        'preserve_spaces': False,  # 是否保留词间空格
+        'merge_lines': True,      # 是否合并短行
+        'remove_noise': True      # 是否移除噪声字符
+    },
+    'en': {  # 英文
+        'preserve_spaces': True,
+        'merge_lines': False,
+        'remove_noise': True
+    },
+    'ja': {  # 日文
+        'preserve_spaces': False,
+        'merge_lines': True,
+        'remove_noise': True
+    },
+    'default': {  # 其他语言
+        'preserve_spaces': True,
+        'merge_lines': False,
+        'remove_noise': True
+    }
+}
+
+# 语言特定的OCR参数
 OCR_CONFIG = {
-    'chi_sim': '--oem 1 --psm 3 -c preserve_interword_spaces=1',
-    'chi_tra': '--oem 1 --psm 3 -c preserve_interword_spaces=1',
-    'eng': '--oem 1 --psm 3',
-    'jpn': '--oem 1 --psm 3',
-    'deu': '--oem 1 --psm 3',
-    'fra': '--oem 1 --psm 3',
-    'ara': '--oem 1 --psm 3'
+    'chi_sim': '--oem 1 --psm 3 -c preserve_interword_spaces=0',  # 中文不保留词间空格
+    'chi_tra': '--oem 1 --psm 3 -c preserve_interword_spaces=0',
+    'eng': '--oem 1 --psm 3 -c preserve_interword_spaces=1',      # 英文保留词间空格
+    'jpn': '--oem 1 --psm 3 -c preserve_interword_spaces=0',      # 日文不保留词间空格
+    'deu': '--oem 1 --psm 3 -c preserve_interword_spaces=1',      # 德文保留词间空格
+    'fra': '--oem 1 --psm 3 -c preserve_interword_spaces=1',      # 法文保留词间空格
+    'ara': '--oem 1 --psm 3 -c preserve_interword_spaces=1'       # 阿拉伯文保留词间空格
 } 

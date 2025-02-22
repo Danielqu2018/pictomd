@@ -29,6 +29,7 @@ class PDFToMarkdown:
         self._init_ocr_config()
         self._init_language_patterns()
         self.ocr_language = 'chi_sim'  # 默认简体中文
+        self.need_translation = False   # 默认不需要翻译
     
     def _init_api_config(self):
         """初始化API配置"""
@@ -45,110 +46,32 @@ class PDFToMarkdown:
             self.poppler_path = POPPLER_PATH  # 设置Poppler路径
     
     def _init_language_patterns(self):
-        """初始化不同语言的清理规则"""
+        """初始化不同语言的清理模式"""
         self.language_patterns = {
-            'zh': {  # 中文规则
-                'page_number': [
-                    r'^第\s*\d+\s*页\s*共\s*\d+\s*页$',
-                    r'^[\-\d]+\-$',
-                ],
-                'separators': [
-                    r'^[\-=\*]{3,}$',
-                    r'^[一二三四五六七八九十]{1,2}[、.]\s*$',
-                ],
-                'headers': [
-                    r'^文件编号[：:]\s*[\w\-]+',
-                    r'^发文日期[：:]\s*\d{4}[\-/年]\d{1,2}[\-/月]\d{1,2}',
-                ],
-                'punctuation': r'[。！？：；]$',
-                'list_marker': r'^[一二三四五六七八九十]、',
-                'space_rule': 'remove',  # 移除所有空格
+            'zh': {  # 中文（简体和繁体）
+                'space': r'([^\u4e00-\u9fff])\s+([^\u4e00-\u9fff])',
+                'punctuation': r'[""'']+',
+                'noise': r'[·・︰]',
+                'level2': r'[^\u4e00-\u9fff\u3000-\u303f\uff00-\uffef\u0020-\u007f\n]'
             },
-            'ja': {  # 日文规则
-                'page_number': [
-                    r'^ページ\s*\d+/\d+$',
-                    r'^[\-\d]+\-$',
-                ],
-                'separators': [
-                    r'^[\-=\*]{3,}$',
-                    r'^[一二三四五六七八九十]{1,2}[、.]\s*$',
-                ],
-                'headers': [
-                    r'^文書番号[：:]\s*[\w\-]+',
-                    r'^日付[：:]\s*\d{4}[\-/年]\d{1,2}[\-/月]\d{1,2}',
-                ],
-                'punctuation': r'[。！？：；]$',
-                'list_marker': r'^[一二三四五六七八九十]、',
-                'space_rule': 'remove',  # 移除所有空格
+            'en': {  # 英文
+                'space': r'\s+',
+                'punctuation': r'[""'']+',
+                'noise': r'[·・︰]',
+                'level2': r'[^\x20-\x7f\n]'
             },
-            'fr': {  # 法语规则
-                'page_number': [
-                    r'^Page \d+ sur \d+$',
-                    r'^[\-\d]+\-$',
-                ],
-                'separators': [
-                    r'^[\-=\*]{3,}$',
-                    r'^\d+\.\s*$',
-                ],
-                'headers': [
-                    r'^N° de document[.:]\s*[\w\-]+',
-                    r'^Date[.:]\s*\d{2}/\d{2}/\d{4}',
-                ],
-                'punctuation': r'[.!?:;]$',
-                'list_marker': r'^\d+\.',
-                'space_rule': 'normalize',  # 规范化空格
+            'ja': {  # 日文
+                'space': r'([^\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff])\s+([^\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff])',
+                'punctuation': r'[""'']+',
+                'noise': r'[·・︰]',
+                'level2': r'[^\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\u3000-\u303f\uff00-\uffef\u0020-\u007f\n]'
             },
-            'de': {  # 德语规则
-                'page_number': [
-                    r'^Seite \d+ von \d+$',
-                    r'^[\-\d]+\-$',
-                ],
-                'separators': [
-                    r'^[\-=\*]{3,}$',
-                    r'^\d+\.\s*$',
-                ],
-                'headers': [
-                    r'^Dokumentnr[.:]\s*[\w\-]+',
-                    r'^Datum[.:]\s*\d{2}\.\d{2}\.\d{4}',
-                ],
-                'punctuation': r'[.!?:;]$',
-                'list_marker': r'^\d+\.',
-                'space_rule': 'normalize',  # 规范化空格
-            },
-            'ar': {  # 阿拉伯语规则
-                'page_number': [
-                    r'^صفحة \d+ من \d+$',
-                    r'^[\-\d]+\-$',
-                ],
-                'separators': [
-                    r'^[\-=\*]{3,}$',
-                    r'^\d+\.\s*$',
-                ],
-                'headers': [
-                    r'^رقم المستند[.:]\s*[\w\-]+',
-                    r'^التاريخ[.:]\s*\d{2}/\d{2}/\d{4}',
-                ],
-                'punctuation': r'[.!?:;،؟]$',
-                'list_marker': r'^\d+[\-\.]',
-                'space_rule': 'rtl',  # 从右到左的文本处理
-            },
-            'en': {  # 英文规则（作为默认规则）
-                'page_number': [
-                    r'^Page \d+ of \d+$',
-                    r'^\d+$',
-                ],
-                'separators': [
-                    r'^[\-=\*]{3,}$',
-                    r'^\d+\.\s*$',
-                ],
-                'headers': [
-                    r'^Document No[.:]\s*[\w\-]+',
-                    r'^Date[.:]\s*\d{4}[-/]\d{1,2}[-/]\d{1,2}',
-                ],
-                'punctuation': r'[.!?:;]$',
-                'list_marker': r'^\d+\.',
-                'space_rule': 'normalize',  # 规范化空格
-            },
+            'default': {  # 其他语言
+                'space': r'\s+',
+                'punctuation': r'[""'']+',
+                'noise': r'[·・︰]',
+                'level2': r'[^\x20-\x7f\n]'
+            }
         }
     
     def _is_scanned_pdf(self, pdf_path: str) -> bool:
@@ -189,6 +112,10 @@ class PDFToMarkdown:
     def set_ocr_language(self, language: str):
         """设置OCR识别语言"""
         self.ocr_language = language
+    
+    def set_need_translation(self, need_translation: bool):
+        """设置是否需要翻译"""
+        self.need_translation = need_translation
     
     def process_image(self, image_path: str) -> str:
         """处理单个图片文件，优化OCR识别效果"""
@@ -279,6 +206,23 @@ class PDFToMarkdown:
         'ar' - 阿拉伯语
         """
         try:
+            # 根据OCR语言设置优先判断
+            if self.ocr_language == 'chi_sim':
+                return 'zh_cn'
+            elif self.ocr_language == 'chi_tra':
+                return 'zh_tw'
+            elif self.ocr_language == 'eng':
+                return 'en'
+            elif self.ocr_language == 'jpn':
+                return 'ja'
+            elif self.ocr_language == 'deu':
+                return 'de'
+            elif self.ocr_language == 'fra':
+                return 'fr'
+            elif self.ocr_language == 'ara':
+                return 'ar'
+            
+            # 如果没有预设语言，则进行自动检测
             # 移除可能影响检测的内容
             cleaned_text = re.sub(r'[0-9\s\W]+', ' ', text)
             
@@ -303,7 +247,10 @@ class PDFToMarkdown:
             
             return lang_map.get(lang, 'en')  # 默认返回英文
         except:
-            return 'en'  # 检测失败时默认返回英文
+            # 如果检测失败，返回OCR设置的语言
+            if self.ocr_language.startswith('chi_'):
+                return 'zh_cn' if self.ocr_language == 'chi_sim' else 'zh_tw'
+            return 'en'  # 其他情况默认返回英文
     
     def is_text_file(self, file_path: str) -> bool:
         """判断是否为文本文件（包括Word文档）"""
@@ -341,141 +288,40 @@ class PDFToMarkdown:
         
         raise ValueError(f"无法以支持的编码格式读取文件: {file_path}")
     
-    def clean_text(self, text: str, clean_level: int = 1, language: str = 'zh') -> str:
-        """
-        根据语言和清理级别清理文本
-        clean_level: 
-            0 - 不清理（保留所有识别内容）
-            1 - 适当清理（仅清理确定的无用内容）
-            2 - 强化清理（更积极地清理可能的干扰内容）
-        language: 文本语言，影响清理规则
-        """
+    def clean_text(self, text: str, clean_level: int = 1) -> str:
+        """根据语言和清理级别清理文本"""
         if clean_level == 0:
             return text
         
-        lines = text.split('\n')
-        cleaned_lines = []
+        # 获取语言对应的清理规则
+        lang_code = self.ocr_language[:2]  # 获取语言代码前两位
+        patterns = self.language_patterns.get(
+            lang_code, 
+            self.language_patterns['default']
+        )
         
-        # 获取语言特定的规则
-        patterns = self.language_patterns.get(language, self.language_patterns['en'])
+        # 基础清理（所有语言通用）
+        text = re.sub(r'\r\n', '\n', text)  # 统一换行符
+        text = re.sub(r'\n{3,}', '\n\n', text)  # 合并多个空行
         
-        # 根据清理级别选择过滤规则
-        if clean_level == 1:
-            # 适当清理：只清理确定的无用内容
-            filter_patterns = [
-                r'^\s*$',  # 空行
-                *patterns['page_number'],  # 页码
-                r'^[\-=_]{3,}$',  # 明显的分隔线
-            ]
-        else:  # clean_level == 2
-            # 强化清理：更积极地清理可能的干扰内容
-            filter_patterns = [
-                r'^\s*$',  # 空行
-                *patterns['page_number'],  # 页码
-                *patterns['separators'],  # 分隔符
-                *patterns['headers'],  # 文件头信息
-                r'^[\-=_]{3,}$',  # 分隔线
-            ]
+        # 根据语言特点清理
+        if lang_code in ['zh', 'ja']:  # 中文和日文
+            text = re.sub(patterns['space'], r'\1\2', text)  # 保留中日文间的空格
+        else:  # 其他语言
+            text = re.sub(patterns['space'], ' ', text)  # 合并空格
         
-        # 编译正则表达式
-        compiled_patterns = [re.compile(pattern) for pattern in filter_patterns]
+        # 清理标点符号
+        text = re.sub(patterns['punctuation'], '"', text)
         
-        # 上下文分析状态
-        context = {
-            'prev_line': '',
-            'current_paragraph': [],
-            'in_list': False,
-            'rtl': patterns['space_rule'] == 'rtl',
-        }
-        
-        def should_merge_lines(prev: str, curr: str, lang_patterns: dict, level: int) -> bool:
-            """根据清理级别判断是否应该合并相邻行"""
-            if not prev or not curr:
-                return False
+        if clean_level >= 1:
+            # 清理确定的干扰字符
+            text = re.sub(patterns['noise'], '', text)
             
-            # 检查是否以标点结束
-            if re.search(lang_patterns['punctuation'], prev):
-                return False
-            
-            # 检查是否为列表项
-            if re.match(lang_patterns['list_marker'], curr):
-                return False
-            
-            # 根据清理级别调整合并策略
-            if level == 1:
-                # 适当清理：更保守的合并策略
-                return len(prev) < 20 and not prev.endswith(('。', '！', '？', '：', '；', '.', '!', '?', ':', ';'))
-            else:  # level == 2
-                # 强化清理：更激进的合并策略
-                return len(prev) < 30 and not prev.endswith(('。', '！', '？', '：', '；', '.', '!', '?', ':', ';'))
+        if clean_level >= 2:
+            # 强化清理
+            text = re.sub(patterns['level2'], '', text)
         
-        def clean_line_by_language(line: str, lang_patterns: dict, level: int) -> str:
-            """根据语言规则和清理级别清理行内容"""
-            # 基本清理
-            line = line.strip()
-            
-            if level == 1:
-                # 适当清理：保留更多原始格式
-                if lang_patterns['space_rule'] == 'remove':
-                    # 中文/日文：只合并多余的空格
-                    line = re.sub(r'\s+', '', line)
-                elif lang_patterns['space_rule'] == 'rtl':
-                    # RTL文本：基本空格处理
-                    line = re.sub(r'\s+', ' ', line)
-                else:
-                    # 其他语言：规范化空格
-                    line = re.sub(r'\s+', ' ', line)
-            else:  # level == 2
-                # 强化清理：更积极的清理
-                if lang_patterns['space_rule'] == 'remove':
-                    # 中文/日文：移除所有空格并清理特殊字符
-                    line = re.sub(r'\s+', '', line)
-                    line = re.sub(r'[^\u4e00-\u9fff\w\s,.，。、：:；;！!？?（）()《》<>""\'\']+', '', line)
-                elif lang_patterns['space_rule'] == 'rtl':
-                    # RTL文本：特殊处理
-                    line = re.sub(r'\s+', ' ', line)
-                    # 可以添加更多RTL特定的清理规则
-                else:
-                    # 其他语言：更严格的清理
-                    line = re.sub(r'\s+', ' ', line)
-                    line = re.sub(r'[^\w\s,.!?:;\(\)<>\'\"]+', '', line)
-            
-            return line
-        
-        # 处理每一行
-        for line in lines:
-            # 跳过无用内容
-            if any(pattern.match(line) for pattern in compiled_patterns):
-                continue
-            
-            # 根据语言和清理级别清理行内容
-            line = clean_line_by_language(line, patterns, clean_level)
-            
-            if line:
-                if should_merge_lines(context['prev_line'], line, patterns, clean_level):
-                    # 合并相关行
-                    context['current_paragraph'].append(line)
-                else:
-                    # 处理已收集的段落
-                    if context['current_paragraph']:
-                        merged_line = ' '.join(context['current_paragraph'])
-                        cleaned_lines.append(merged_line)
-                        context['current_paragraph'] = []
-                    cleaned_lines.append(line)
-            
-            context['prev_line'] = line
-        
-        # 处理最后一个段落
-        if context['current_paragraph']:
-            merged_line = ' '.join(context['current_paragraph'])
-            cleaned_lines.append(merged_line)
-        
-        # RTL文本的后处理
-        if context['rtl'] and clean_level == 2:
-            # 为RTL文本添加额外的处理逻辑
-            pass
-        
-        return '\n'.join(cleaned_lines)
+        return text.strip()
     
     def convert_to_markdown(self, text: str) -> str:
         """
@@ -568,7 +414,7 @@ class PDFToMarkdown:
             
             # 清理文本
             print(f"使用{detected_language}语言规则清理文本...")
-            cleaned_text = self.clean_text(raw_text, clean_level, detected_language)
+            cleaned_text = self.clean_text(raw_text, clean_level)
             
             # 保存清理后的原始文本
             raw_output_path = output_path.replace('.md', '_raw.txt')
@@ -593,8 +439,8 @@ class PDFToMarkdown:
                 'language': detected_language
             }
             
-            # 如果不是中文，创建翻译版本
-            if detected_language not in ['zh', 'zh_cn', 'zh_tw']:
+            # 根据设置决定是否翻译
+            if self.need_translation:
                 print("检测到非中文文本，正在翻译...")
                 translated_text = self.translate_to_chinese(markdown_text)
                 translated_path = output_path.replace('.md', '_zh.md')

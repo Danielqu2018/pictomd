@@ -32,6 +32,7 @@
   - 实时预览源文件
   - 并排显示原文和翻译
   - 支持语言和清理级别选择
+  - 所有文件可下载保存
 
 ## 安装说明
 
@@ -61,14 +62,13 @@ pip install -r requirements.txt
 1. **Tesseract OCR**
    - 下载：[Tesseract-OCR installer](https://github.com/UB-Mannheim/tesseract/wiki)
    - 安装到：`C:\Program Files\Tesseract-OCR`
-   - 确保安装以下语言包：
-     - Chinese (Simplified) - 简体中文
-     - Chinese (Traditional) - 繁体中文
-     - English - 英文
-     - Japanese - 日文
-     - German - 德语
-     - French - 法语
-     - Arabic - 阿拉伯语
+   - 下载语言包：
+     - 简体中文：`chi_sim.traineddata`
+     - 繁体中文：`chi_tra.traineddata`
+     - 日文：`jpn.traineddata`
+     - 德语：`deu.traineddata`
+     - 法语：`fra.traineddata`
+     - 阿拉伯语：`ara.traineddata`
 
 2. **Poppler**
    - 下载：[poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases/)
@@ -106,6 +106,7 @@ pip install -r requirements.txt
    - 等待处理完成
    - 查看源文件预览、原始文本和Markdown结果
    - 如果是非中文文档，还可以查看中文翻译
+   - 可以下载所有处理结果文件
 
 ### 命令行界面：
 
@@ -128,75 +129,18 @@ pip install -r requirements.txt
    - `example_raw.txt`：清理后的原始文本
    - `example_zh.md`：中文翻译（如果原文不是中文）
 
-## 清理级别说明
+## 文件说明
 
-### 级别 0：不清理
-- 保留所有 OCR 识别的内容
-- 适用于需要查看完整识别结果的情况
-- 可能包含页眉页脚等干扰信息
+处理过程中会生成以下文件：
+- `[时间戳]_[原文件名]`：上传的原始文件
+- `[时间戳]_[原文件名]_raw.txt`：OCR识别并清理后的原始文本
+- `[时间戳]_[原文件名].md`：转换后的Markdown文件
+- `[时间戳]_[原文件名]_zh.md`：中文翻译文件（如果原文不是中文）
 
-### 级别 1：适当清理
-- 仅清理确定的无用内容：
-  - 标准格式的页码
-  - 传真页眉信息
-  - 日期时间戳
-  - 空白行
-- 保守地合并分散的文本行
-- 推荐用于大多数情况
-
-### 级别 2：强化清理
-- 更积极地清理可能的干扰内容：
-  - 纯英文数字的行
-  - 特殊字符过多的行
-  - 疑似 OCR 错误的内容
-- 更积极地合并相关文本行
-- 适用于需要更干净输出的情况
-
-## 处理流程
-
-1. 文件类型检测
-   - 自动识别是否为扫描版 PDF
-   - 支持直接处理图片文件
-
-2. 文本提取
-   - PDF文本版：直接提取文本
-   - 扫描版PDF/图片：OCR 识别
-
-3. 文本清理
-   - 根据选择的清理级别处理文本
-   - 保存清理后的原始文本
-
-4. Markdown 转换
-   - 使用 DeepSeek-V3 模型
-   - 保持原有层级结构
-   - 优化格式呈现
-
-## 常见问题
-
-### OCR 识别效果不理想？
-- 确保 PDF/图片 文件清晰度高
-- 检查 Tesseract 中文语言包是否正确安装
-- 可以尝试调整 `config.py` 中的 OCR 相关参数
-- 尝试使用不同的清理级别
-
-### 程序报错？
-- 检查所有依赖是否正确安装
-- 确认 Tesseract 和 Poppler 的安装路径是否正确
-- 验证 API key 是否有效
-
-### 转换结果不理想？
-- 尝试不同的清理级别
-- 检查原始识别文本（`*_raw.txt`）
-- 可能需要手动编辑最终结果
-
-## 注意事项
-
-- 输入文件质量直接影响识别效果
-- 建议先用小文件测试不同清理级别的效果
-- API 调用可能产生费用
-- 保持网络连接稳定
+所有生成的文件都会保留在 `uploads` 目录中，可以通过Web界面下载或直接从目录访问。
 
 ## 项目结构
+```
 .
 ├── pdf_to_markdown.py # 主程序
 ├── web_app.py        # Web应用
@@ -204,9 +148,10 @@ pip install -r requirements.txt
 ├── utils.py         # 工具函数
 ├── templates/       # HTML模板
 │   └── index.html  # 主页面
+├── uploads/        # 上传和处理文件目录
 ├── README.md        # 说明文档
 └── .gitignore      # Git忽略配置
-
+```
 
 ## 开发环境
 
@@ -223,6 +168,8 @@ pip install -r requirements.txt
 - 🌍 支持多语言OCR识别
 - 🔄 添加自动翻译功能
 - 📱 优化用户交互体验
+- 💾 保留所有处理文件
+- 📥 支持文件下载
 
 ### v1.1.0 (2025-03)
 - ✨ 添加三级文本清理选项

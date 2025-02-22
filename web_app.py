@@ -7,6 +7,7 @@ import io
 import base64
 from pdf_to_markdown import PDFToMarkdown
 from pathlib import Path
+from datetime import datetime
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -102,9 +103,17 @@ def upload_file():
         return jsonify({'error': '不支持的文件格式'}), 400
     
     try:
-        # 保存上传的文件
+        # 生成唯一的文件标识符
+        file_id = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # 构建文件路径
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        base_name = Path(filename).stem
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{file_id}_{filename}")
+        output_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{file_id}_{base_name}.md")
+        raw_path = os.path.join(app.config['UPLOAD_FOLDER'], f"{file_id}_{base_name}_raw.txt")
+        
+        # 保存上传的文件
         file.save(file_path)
         
         # 获取文件预览
@@ -112,36 +121,54 @@ def upload_file():
         
         # 获取参数
         clean_level = int(request.form.get('cleanLevel', 1))
-        ocr_language = request.form.get('language', 'chi_sim')  # 默认简体中文
+        ocr_language = request.form.get('language', 'chi_sim')
         
-        # 处理文件
+        # 设置语言相关配置
         converter = PDFToMarkdown()
-        # 设置OCR语言
         converter.set_ocr_language(ocr_language)
         
-        output_path = os.path.join(
-            app.config['UPLOAD_FOLDER'], 
-            f"{Path(filename).stem}.md"
-        )
+        # 根据OCR语言设置是否需要翻译
+        need_translation = not ocr_language.startswith(('chi_sim', 'chi_tra'))
+        converter.set_need_translation(need_translation)
+        
+        # 处理文件
         result = converter.process_file(file_path, output_path, clean_level)
         
         if result:
             # 读取原始文本
-            raw_path = output_path.replace('.md', '_raw.txt')
             with open(raw_path, 'r', encoding='utf-8') as f:
                 raw_content = f.read()
+            
+            # 设置响应的语言标识
+            language_display = {
+                'chi_sim': 'zh_cn',
+                'chi_tra': 'zh_tw',
+                'eng': 'en',
+                'jpn': 'ja',
+                'deu': 'de',
+                'fra': 'fr',
+                'ara': 'ar'
+            }.get(ocr_language, ocr_language)
             
             response_data = {
                 'success': True,
                 'preview': preview,
                 'raw_text': raw_content,
                 'markdown': result['original'],
-                'language': result['language']
+                'language': language_display,  # 使用OCR语言设置
+                'file_id': file_id,
+                'original_name': filename,
+                'files': {
+                    'source': f"{file_id}_{filename}",
+                    'raw': f"{file_id}_{base_name}_raw.txt",
+                    'markdown': f"{file_id}_{base_name}.md"
+                }
             }
             
-            # 如果有翻译版本，添加到响应中
             if result['translated']:
+                translated_path = output_path.replace('.md', '_zh.md')
                 response_data['translated'] = result['translated']
+                response_data['files']['translated'] = f"{file_id}_{base_name}_zh.md"
             
             return jsonify(response_data)
         else:
@@ -149,14 +176,24 @@ def upload_file():
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-    finally:
-        # 清理临时文件
-        try:
-            os.remove(file_path)
-            os.remove(output_path)
-            os.remove(raw_path)
-        except:
-            pass
+
+# 添加文件下载路由
+@app.route('/download/<file_id>/<file_type>')
+def download_file(file_id, file_type):
+    """下载处理后的文件"""
+    try:
+        files = os.listdir(app.config['UPLOAD_FOLDER'])
+        target_file = next((f for f in files if f.startswith(file_id) and f.endswith(file_type)), None)
+        
+        if target_file:
+            return send_file(
+                os.path.join(app.config['UPLOAD_FOLDER'], target_file),
+                as_attachment=True,
+                download_name=target_file.replace(file_id + '_', '')
+            )
+        return jsonify({'error': '文件不存在'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000, use_reloader=True) 

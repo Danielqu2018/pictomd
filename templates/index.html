@@ -98,17 +98,37 @@
             <div class="col-md-6">
                 <h4>源文件预览</h4>
                 <div id="sourcePreview" class="source-preview"></div>
+                <div class="text-end mb-3">
+                    <button id="downloadSource" class="btn btn-sm btn-outline-primary" style="display: none;">
+                        下载源文件
+                    </button>
+                </div>
                 
                 <h4>原始文本</h4>
                 <div id="rawText" class="preview-container"></div>
+                <div class="text-end mb-3">
+                    <button id="downloadRaw" class="btn btn-sm btn-outline-primary" style="display: none;">
+                        下载原始文本
+                    </button>
+                </div>
             </div>
             <div class="col-md-6">
                 <h4>Markdown预览 <span id="languageIndicator" class="badge bg-secondary"></span></h4>
                 <div id="markdownPreview" class="preview-container"></div>
+                <div class="text-end mb-3">
+                    <button id="downloadMarkdown" class="btn btn-sm btn-outline-primary" style="display: none;">
+                        下载Markdown
+                    </button>
+                </div>
                 
                 <div id="translationContainer" style="display: none;">
                     <h4>中文翻译</h4>
                     <div id="translatedPreview" class="preview-container"></div>
+                    <div class="text-end mb-3">
+                        <button id="downloadTranslated" class="btn btn-sm btn-outline-primary">
+                            下载翻译
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -177,6 +197,28 @@
             }
         });
 
+        // 添加语言选择变化事件处理
+        language.addEventListener('change', (e) => {
+            const selectedLang = e.target.value;
+            const translationNote = document.getElementById('translationNote');
+            
+            // 如果选择了非中文语言，显示翻译提示
+            if (selectedLang !== 'chi_sim' && selectedLang !== 'chi_tra') {
+                if (!translationNote) {
+                    const note = document.createElement('div');
+                    note.id = 'translationNote';
+                    note.className = 'text-muted small mt-1';
+                    note.textContent = '* 非中文文档将自动生成中文翻译';
+                    language.parentNode.appendChild(note);
+                }
+            } else {
+                // 如果选择了中文，移除翻译提示
+                if (translationNote) {
+                    translationNote.remove();
+                }
+            }
+        });
+
         function processFile(file) {
             const formData = new FormData();
             formData.append('file', file);
@@ -204,21 +246,48 @@
                     
                     // 显示语言标识
                     const languageIndicator = document.getElementById('languageIndicator');
-                    languageIndicator.textContent = `语言: ${data.language}`;
+                    const languageMap = {
+                        'zh_cn': '简体中文',
+                        'zh_tw': '繁体中文',
+                        'en': '英文',
+                        'ja': '日文',
+                        'de': '德语',
+                        'fr': '法语',
+                        'ar': '阿拉伯语'
+                    };
+                    languageIndicator.textContent = `语言: ${languageMap[data.language] || data.language}`;
                     
                     // 显示处理结果
                     rawText.textContent = data.raw_text;
                     markdownPreview.innerHTML = marked.parse(data.markdown);
                     
+                    // 显示并配置下载按钮
+                    const downloadSource = document.getElementById('downloadSource');
+                    const downloadRaw = document.getElementById('downloadRaw');
+                    const downloadMarkdown = document.getElementById('downloadMarkdown');
+                    const downloadTranslated = document.getElementById('downloadTranslated');
+                    
+                    downloadSource.style.display = 'inline-block';
+                    downloadRaw.style.display = 'inline-block';
+                    downloadMarkdown.style.display = 'inline-block';
+                    
+                    downloadSource.onclick = () => window.location.href = `/download/${data.file_id}/${data.files.source}`;
+                    downloadRaw.onclick = () => window.location.href = `/download/${data.file_id}/${data.files.raw}`;
+                    downloadMarkdown.onclick = () => window.location.href = `/download/${data.file_id}/${data.files.markdown}`;
+                    
                     // 处理翻译结果
                     const translationContainer = document.getElementById('translationContainer');
                     const translatedPreview = document.getElementById('translatedPreview');
                     
+                    // 只在有翻译时显示翻译相关内容
                     if (data.translated) {
                         translationContainer.style.display = 'block';
                         translatedPreview.innerHTML = marked.parse(data.translated);
+                        downloadTranslated.style.display = 'inline-block';
+                        downloadTranslated.onclick = () => window.location.href = `/download/${data.file_id}/${data.files.translated}`;
                     } else {
                         translationContainer.style.display = 'none';
+                        downloadTranslated.style.display = 'none';
                     }
                     
                     hljs.highlightAll();
