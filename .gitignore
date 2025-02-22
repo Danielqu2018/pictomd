@@ -1,6 +1,8 @@
 # 配置文件
 config.py
 .env
+*.ini
+*.cfg
 
 # Python
 __pycache__/
@@ -38,25 +40,52 @@ env/
 *.swp
 *.swo
 .DS_Store
+*.sublime-project
+*.sublime-workspace
 
 # 项目特定文件
+## 输入文件
 *.pdf
+*.png
+*.jpg
+*.jpeg
+*.tiff
+*.bmp
+*.gif
+*.webp
+
+## 输出文件
 *.md
 !README.md
-*.txt
-*_ocr.txt
+*_raw.txt
+*_cleaned.txt
+*_output.md
 
 # 日志文件
 *.log
 logs/
 log/
+*.log.*
 
 # 临时文件
 temp/
 tmp/
 .temp/
 .tmp/
+*.tmp
+*.temp
+*.bak
+*.backup
 
 # 测试文件
 test*/
-tests/ 
+tests/
+__tests__/
+coverage/
+.coverage
+htmlcov/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini 

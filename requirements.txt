@@ -1,0 +1,16 @@
+# PDF处理
+pdf2image>=1.16.3    # PDF转图片
+PyMuPDF>=1.23.8      # PDF文本提取
+
+# OCR相关
+pytesseract>=0.3.10  # OCR文字识别
+Pillow>=10.0.0       # 图片处理
+
+# HTTP请求
+requests>=2.31.0     # API调用
+
+# 类型提示
+typing-extensions>=4.8.0  # Python类型提示扩展
+
+# 路径处理
+pathlib>=1.0.1       # 路径处理工具 
