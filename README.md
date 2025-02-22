@@ -1,6 +1,6 @@
 # PDF 转 Markdown 工具
 
-一个将 PDF 文档转换为 Markdown 格式的工具，支持中英文 OCR 识别，并使用大语言模型优化输出格式。
+一个将 PDF 文档转换为 Markdown 格式的工具，支持多语言 OCR 识别，自动翻译，并使用大语言模型优化输出格式。
 
 ## 主要功能
 
@@ -9,13 +9,29 @@
   - 图片文件（PNG, JPG, JPEG, TIFF, BMP, GIF, WEBP）
   - Word文档（`.doc`, `.docx`）
   - 文本文件（`.txt`, `.csv`, `.json`, `.xml`, `.html`, `.md`, `.rst`）
-- OCR 文字识别（基于 Tesseract）
+- 多语言 OCR 识别：
+  - 简体中文
+  - 繁体中文
+  - 英文
+  - 日文
+  - 德语
+  - 法语
+  - 阿拉伯语
 - 三级文本清理选项：
   - 不清理：保留所有OCR识别内容
   - 适当清理：仅清理确定的无用内容
   - 强化清理：更积极地清理可能的干扰内容
 - 使用 DeepSeek-V3 模型生成结构化 Markdown
 - 保存中间结果，便于检查和修正
+- 自动翻译功能：
+  - 自动检测文档语言
+  - 非中文文档自动翻译成中文
+  - 保留原文格式和结构
+- Web界面支持：
+  - 拖拽上传文件
+  - 实时预览源文件
+  - 并排显示原文和翻译
+  - 支持语言和清理级别选择
 
 ## 安装说明
 
@@ -74,39 +90,43 @@ pip install -r requirements.txt
 
 ## 使用方法
 
+### Web界面（推荐）：
+
+1. 启动Web服务：
+   ```bash
+   python web_app.py
+   ```
+
+2. 打开浏览器访问：`http://localhost:5000`
+
+3. 在网页上：
+   - 选择识别语言
+   - 选择清理级别
+   - 拖拽或选择文件上传
+   - 等待处理完成
+   - 查看源文件预览、原始文本和Markdown结果
+   - 如果是非中文文档，还可以查看中文翻译
+
+### 命令行界面：
+
 1. 准备输入文件：
-   - 将要转换的 PDF 或图片文件放在程序目录下
-   - 支持的文件格式：
-     - PDF 文件（`.pdf`）
-     - 图片文件（`.png`, `.jpg`, `.jpeg`, `.tiff`, `.bmp`, `.gif`, `.webp`）
-     - Word文档（`.doc`, `.docx`）
-     - 文本文件（`.txt`, `.csv`, `.json`, `.xml`, `.html`, `.md`, `.rst`）
+   - 将要转换的文件放在程序同目录下
+   - 支持PDF、图片或文本文件
 
 2. 运行程序：
    ```bash
    python pdf_to_markdown.py
    ```
 
-3. 根据提示输入文件名（不需要扩展名）：
-   ```
-   请输入要转换的文件名(不带后缀): example
-   ```
+3. 按提示操作：
+   - 输入文件名（不带后缀）
+   - 选择清理级别（0-2）
+   - 等待处理完成
 
-4. 选择文本清理级别：
-   ```
-   请选择文本清理级别：
-   0 - 不清理（保留所有OCR识别内容）
-   1 - 适当清理（仅清理确定的无用内容）
-   2 - 强化清理（更积极地清理可能的干扰内容）
-   
-   请输入清理级别(0-2):
-   ```
-
-5. 等待处理完成，程序会生成两个文件：
+4. 查看结果：
+   - `example.md`：转换后的Markdown文件
    - `example_raw.txt`：清理后的原始文本
-   - `example.md`：转换后的 Markdown 文件
-
-> 注意：生成的文件（`*_raw.txt` 和转换后的 `.md` 文件）不会被包含在版本控制中。
+   - `example_zh.md`：中文翻译（如果原文不是中文）
 
 ## 清理级别说明
 
@@ -179,10 +199,13 @@ pip install -r requirements.txt
 ## 项目结构
 .
 ├── pdf_to_markdown.py # 主程序
-├── config.py # 配置文件
-├── utils.py # 工具函数
-├── README.md # 说明文档
-└── .gitignore # Git 忽略配置
+├── web_app.py        # Web应用
+├── config.py         # 配置文件
+├── utils.py         # 工具函数
+├── templates/       # HTML模板
+│   └── index.html  # 主页面
+├── README.md        # 说明文档
+└── .gitignore      # Git忽略配置
 
 
 ## 开发环境
@@ -191,8 +214,15 @@ pip install -r requirements.txt
 - Windows 10/11
 - Tesseract-OCR 5.x
 - Poppler 24.x
+- Flask 2.x
 
 ## 更新日志
+
+### v1.2.0 (2025-03)
+- ✨ 添加Web界面支持
+- 🌍 支持多语言OCR识别
+- 🔄 添加自动翻译功能
+- 📱 优化用户交互体验
 
 ### v1.1.0 (2025-03)
 - ✨ 添加三级文本清理选项

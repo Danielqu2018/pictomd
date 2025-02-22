@@ -156,4 +156,110 @@ node_modules/
 *.pyd
 .Python
 *.mo
+*.pot
+
+# 上传文件临时目录
+uploads/
+
+# 项目特定文件
+## 输入文件
+*.pdf
+*.PDF
+*.png
+*.PNG
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.tiff
+*.TIFF
+*.bmp
+*.BMP
+*.gif
+*.GIF
+*.webp
+*.WEBP
+*.doc
+*.DOC
+*.docx
+*.DOCX
+
+## 输出文件
+*.md
+!README.md
+## 生成的文本文件
+*.txt
+!requirements.txt
+!LICENSE.txt
+!CONTRIBUTING.txt
+*_temp.*
+*_backup.*
+
+# 日志文件
+*.log
+logs/
+log/
+*.log.*
+logging/
+.log/
+
+# 临时文件
+temp/
+tmp/
+.temp/
+.tmp/
+*.tmp
+*.temp
+*.bak
+*.backup
+~*
+*.~*
+*.swp
+*.swo
+*~
+
+# 测试文件
+test*/
+tests/
+__tests__/
+coverage/
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+System Volume Information/
+*.lnk
+._*
+
+# 压缩文件
+*.zip
+*.rar
+*.7z
+*.gz
+*.tar
+*.tgz
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+*.accdb
+
+# 其他
+node_modules/
+.sass-cache/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.mo
 *.pot 

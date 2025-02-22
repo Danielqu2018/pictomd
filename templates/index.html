@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF转Markdown工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.css" rel="stylesheet">
+    <style>
+        .dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dropzone.dragover {
+            background: #e9ecef;
+            border-color: #0d6efd;
+        }
+        .preview-container {
+            height: 60vh;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .source-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .source-preview img {
+            max-width: 100%;
+            height: auto;
+        }
+        .source-preview pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">PDF转Markdown工具</h1>
+        
+        <div class="row mb-4">
+            <div class="col-md-6 offset-md-3">
+                <div id="dropzone" class="dropzone">
+                    <p class="mb-0">拖拽文件到这里或点击选择文件</p>
+                    <input type="file" id="fileInput" class="d-none">
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-3 offset-md-3">
+                <label for="language" class="form-label">识别语言：</label>
+                <select class="form-select" id="language">
+                    <option value="chi_sim">简体中文</option>
+                    <option value="chi_tra">繁体中文</option>
+                    <option value="eng">英文</option>
+                    <option value="jpn">日文</option>
+                    <option value="deu">德语</option>
+                    <option value="fra">法语</option>
+                    <option value="ara">阿拉伯语</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="cleanLevel" class="form-label">清理级别：</label>
+                <select class="form-select" id="cleanLevel">
+                    <option value="0">不清理（保留所有识别内容）</option>
+                    <option value="1" selected>适当清理（仅清理确定的无用内容）</option>
+                    <option value="2">强化清理（更积极地清理可能的干扰内容）</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h4>源文件预览</h4>
+                <div id="sourcePreview" class="source-preview"></div>
+                
+                <h4>原始文本</h4>
+                <div id="rawText" class="preview-container"></div>
+            </div>
+            <div class="col-md-6">
+                <h4>Markdown预览 <span id="languageIndicator" class="badge bg-secondary"></span></h4>
+                <div id="markdownPreview" class="preview-container"></div>
+                
+                <div id="translationContainer" style="display: none;">
+                    <h4>中文翻译</h4>
+                    <div id="translatedPreview" class="preview-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">处理中...</span>
+        </div>
+        <p class="mt-2 mb-0">正在处理文件...</p>
+    </div>
+
+    <!-- 引入完整的 highlight.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- 引入 marked -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
+    <!-- 引入 highlight.js 样式 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+
+    <script>
+        // 配置 marked 使用 highlight.js
+        marked.setOptions({
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    return hljs.highlight(code, { language: lang }).value;
+                }
+                return hljs.highlightAuto(code).value;
+            }
+        });
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const rawText = document.getElementById('rawText');
+        const markdownPreview = document.getElementById('markdownPreview');
+        const cleanLevel = document.getElementById('cleanLevel');
+        const language = document.getElementById('language');
+
+        // 拖拽处理
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                processFile(files[0]);
+            }
+        });
+
+        // 点击选择文件
+        dropzone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                processFile(e.target.files[0]);
+            }
+        });
+
+        function processFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('cleanLevel', cleanLevel.value);
+            formData.append('language', language.value);
+
+            loading.style.display = 'block';
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 显示源文件预览
+                    const sourcePreview = document.getElementById('sourcePreview');
+                    if (data.preview.type === 'image') {
+                        sourcePreview.innerHTML = `<img src="${data.preview.data}" alt="预览">`;
+                    } else if (data.preview.type === 'text') {
+                        sourcePreview.innerHTML = `<pre>${data.preview.data}</pre>`;
+                    } else {
+                        sourcePreview.innerHTML = `<p>${data.preview.data}</p>`;
+                    }
+                    
+                    // 显示语言标识
+                    const languageIndicator = document.getElementById('languageIndicator');
+                    languageIndicator.textContent = `语言: ${data.language}`;
+                    
+                    // 显示处理结果
+                    rawText.textContent = data.raw_text;
+                    markdownPreview.innerHTML = marked.parse(data.markdown);
+                    
+                    // 处理翻译结果
+                    const translationContainer = document.getElementById('translationContainer');
+                    const translatedPreview = document.getElementById('translatedPreview');
+                    
+                    if (data.translated) {
+                        translationContainer.style.display = 'block';
+                        translatedPreview.innerHTML = marked.parse(data.translated);
+                    } else {
+                        translationContainer.style.display = 'none';
+                    }
+                    
+                    hljs.highlightAll();
+                } else {
+                    alert(data.error || '处理失败');
+                }
+            })
+            .catch(error => {
+                alert('上传失败: ' + error);
+            })
+            .finally(() => {
+                loading.style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html> 

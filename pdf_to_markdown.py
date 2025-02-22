@@ -10,12 +10,13 @@ import re  # 正则表达式
 from pathlib import Path  # 路径处理
 import langdetect  # 用于语言检测
 import docx  # 导入python-docx库
+from PIL import ImageEnhance
 
 # 导入配置
 from config import (
     API_KEY, TESSERACT_CMD, POPPLER_PATH, API_URL, 
     MODEL_NAME, OCR_LANG, TEMPERATURE, MAX_TOKENS,
-    SUPPORTED_IMAGE_FORMATS, SUPPORTED_TEXT_FORMATS
+    SUPPORTED_IMAGE_FORMATS, SUPPORTED_TEXT_FORMATS, OCR_CONFIG
 )
 from utils import check_file_exists, ensure_directory_exists
 
@@ -27,6 +28,7 @@ class PDFToMarkdown:
         self._init_api_config()
         self._init_ocr_config()
         self._init_language_patterns()
+        self.ocr_language = 'chi_sim'  # 默认简体中文
     
     def _init_api_config(self):
         """初始化API配置"""
@@ -184,37 +186,84 @@ class PDFToMarkdown:
             return convert_from_path(pdf_path, poppler_path=self.poppler_path)
         return convert_from_path(pdf_path)
     
+    def set_ocr_language(self, language: str):
+        """设置OCR识别语言"""
+        self.ocr_language = language
+    
     def process_image(self, image_path: str) -> str:
-        """
-        处理单个图片文件
-        使用OCR识别图片中的文字
-        """
+        """处理单个图片文件，优化OCR识别效果"""
         if not check_file_exists(image_path):
             raise FileNotFoundError(f"图片文件不存在: {image_path}")
         
+        # 打开图片
         image = Image.open(image_path)
-        return pytesseract.image_to_string(image, lang=OCR_LANG)
+        
+        # 转换为灰度图
+        image = image.convert('L')
+        
+        # 图像增强
+        from PIL import ImageEnhance
+        # 增加对比度
+        enhancer = ImageEnhance.Contrast(image)
+        image = enhancer.enhance(2.0)
+        # 增加锐度
+        enhancer = ImageEnhance.Sharpness(image)
+        image = enhancer.enhance(2.0)
+        
+        # 放大图片可以提高小字的识别率
+        width, height = image.size
+        image = image.resize((width*2, height*2), Image.Resampling.LANCZOS)
+        
+        # 设置OCR配置参数
+        custom_config = f'-l {self.ocr_language} --oem 1 --psm 3'
+        
+        # 进行OCR识别
+        try:
+            text = pytesseract.image_to_string(
+                image, 
+                config=custom_config,
+                lang=self.ocr_language
+            )
+            return text
+        except Exception as e:
+            print(f"OCR识别出错: {str(e)}")
+            raise
     
     def extract_text_from_images(self, images: Union[List[Image.Image], List[str]]) -> str:
-        """
-        从图片中提取文本
-        支持处理图片对象列表或图片路径列表
-        """
+        """从图片中提取文本"""
         extracted_text = []
         total = len(images)
+        
+        # 获取语言特定的OCR配置
+        custom_config = OCR_CONFIG.get(self.ocr_language, '--oem 1 --psm 3')
         
         for i, image in enumerate(images, 1):
             try:
                 if isinstance(image, str):  # 如果是图片路径
                     text = self.process_image(image)
                 else:  # 如果是PIL Image对象
-                    text = pytesseract.image_to_string(image, lang=OCR_LANG)
+                    # 预处理图像
+                    image = image.convert('L')  # 转灰度
+                    # 增强对比度
+                    enhancer = ImageEnhance.Contrast(image)
+                    image = enhancer.enhance(2.0)
+                    # 增强锐度
+                    enhancer = ImageEnhance.Sharpness(image)
+                    image = enhancer.enhance(2.0)
+                    # 放大图片
+                    width, height = image.size
+                    image = image.resize((width*2, height*2), Image.Resampling.LANCZOS)
+                    
+                    text = pytesseract.image_to_string(
+                        image,
+                        config=custom_config,
+                        lang=self.ocr_language
+                    )
                 extracted_text.append(text)
-                print(f"已完成第 {i}/{total} 个文件的文字识别")
+                print(f'处理进度: {i}/{total}')
             except Exception as e:
-                print(f"处理第 {i} 个文件时发生错误: {str(e)}")
-                extracted_text.append("")
-        
+                print(f"处理第{i}张图片时出错: {str(e)}")
+                
         return '\n'.join(extracted_text)
     
     def detect_language(self, text: str) -> str:
@@ -460,7 +509,36 @@ class PDFToMarkdown:
             print(f"调用 API 时发生错误: {str(e)}")
             return text  # 出错时返回原始文本
     
-    def process_file(self, input_path: str, output_path: str, clean_level: int = 1) -> Optional[str]:
+    def translate_to_chinese(self, text: str) -> str:
+        """将文本翻译成中文"""
+        try:
+            # 准备API请求
+            payload = {
+                "model": MODEL_NAME,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "你是一个专业的翻译专家。请将输入的文本翻译成中文，保持原有的格式和结构。"
+                    },
+                    {
+                        "role": "user",
+                        "content": f"请将以下文本翻译成中文，保持Markdown格式：\n\n{text}"
+                    }
+                ],
+                "temperature": TEMPERATURE,
+                "max_tokens": MAX_TOKENS
+            }
+            
+            # 发送API请求
+            response = requests.post(self.api_url, headers=self.headers, json=payload)
+            response.raise_for_status()
+            result = response.json()
+            return result['choices'][0]['message']['content']
+        except Exception as e:
+            print(f"翻译时发生错误: {str(e)}")
+            return text
+    
+    def process_file(self, input_path: str, output_path: str, clean_level: int = 1) -> Optional[dict]:
         """处理输入文件并保存为Markdown"""
         try:
             print(f"开始处理文件: {input_path}")
@@ -503,12 +581,33 @@ class PDFToMarkdown:
             print("转换为Markdown格式...")
             markdown_text = self.convert_to_markdown(cleaned_text)
             
-            print("保存Markdown结果...")
+            print("保存原始语言的Markdown")
             ensure_directory_exists(output_path)
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(markdown_text)
             
-            return output_path
+            result = {
+                'original': markdown_text,
+                'translated': None,
+                'translated_path': None,
+                'language': detected_language
+            }
+            
+            # 如果不是中文，创建翻译版本
+            if detected_language not in ['zh', 'zh_cn', 'zh_tw']:
+                print("检测到非中文文本，正在翻译...")
+                translated_text = self.translate_to_chinese(markdown_text)
+                translated_path = output_path.replace('.md', '_zh.md')
+                
+                # 保存翻译后的Markdown
+                with open(translated_path, 'w', encoding='utf-8') as f:
+                    f.write(translated_text)
+                
+                result['translated'] = translated_text
+                result['translated_path'] = translated_path
+                print(f"翻译完成，结果保存在：{translated_path}")
+            
+            return result
         except Exception as e:
             print(f"处理文件时发生错误: {str(e)}")
             return None
@@ -557,10 +656,12 @@ def main():
         output_path = f'{input_name}.md'
         
         # 修改 process_file 方法调用，传入清理级别
-        result_path = converter.process_file(found_file, output_path, clean_level)
+        result = converter.process_file(found_file, output_path, clean_level)
         
-        if result_path:
-            print(f'转换完成，结果保存在：{result_path}')
+        if result:
+            print(f'转换完成，结果保存在：{result["original"]}')
+            if result['translated']:
+                print(f'翻译后的中文版本保存在：{result["translated_path"]}')
         else:
             print('转换失败')
             
