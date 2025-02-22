@@ -3,47 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF转Markdown工具</title>
+    <title>Markdown文件生成工具</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        :root {
+            /* 主色调：淡紫色系 */
+            --primary-color: #9d7bea;
+            --hover-color: #8b5cf6;
+            
+            /* 中性色调：柔和的紫色 */
+            --neutral-50: #f5f3ff;
+            --neutral-100: #ede9fe;
+            --neutral-200: #ddd6fe;
+            --neutral-700: #4b5563;
+            --neutral-900: #1f2937;
+            
+            /* 点缀色：柔和色系 */
+            --accent-purple: #c4b5fd;  /* 淡紫色 */
+            --accent-pink: #f0abfc;    /* 淡粉色 */
+            --accent-blue: #bfdbfe;    /* 淡蓝色 */
+        }
+        
+        /* 基础样式设置 */
+        body {
+            /* 设置页面背景色为淡紫色 */
+            background-color: var(--neutral-50);
+            color: var(--neutral-900);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8e7ff;  /* 使用淡紫色背景 */
+        }
+        
+        /* 主容器最大宽度限制 */
+        .container {
+            max-width: 1400px;
+        }
+        
+        /* 页面标题样式 - "Markdown文件生成工具" */
+        h1 {
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            /* 标题文字渐变效果 */
+            background: linear-gradient(120deg, #6b46c1, #4c1d95);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+        }
+        
+        /* 卡片组件样式 - 用于文件上传区域和设置区域 */
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.2s ease;
+        }
+        
+        /* 卡片悬停效果 */
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* 卡片头部样式 */
+        .card-header {
+            background: white;
+            border-bottom: 1px solid var(--neutral-200);
+            padding: 15px 20px;
+        }
+        
+        /* 文件拖放区域样式 */
         .dropzone {
-            border: 2px dashed #ccc;
-            border-radius: 4px;
-            padding: 20px;
+            border: 2px dashed var(--accent-purple);
+            border-radius: 8px;
+            padding: 30px;
             text-align: center;
-            background: #f8f9fa;
+            background: rgba(255, 255, 255, 0.7);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
+        
+        /* 拖放区域悬停效果 */
+        .dropzone:hover {
+            background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.95), rgba(232, 238, 224, 0.4));
+            border-color: var(--primary-color);
+        }
+        
+        /* 拖放文件时的样式 */
         .dropzone.dragover {
-            background: #e9ecef;
-            border-color: #0d6efd;
+            background: var(--neutral-100);
+            border-color: var(--primary-color);
         }
+        
+        /* 拖放区域图标样式 */
+        .dropzone i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        /* 表单标签样式 - 用于语言选择和清理级别选择 */
+        .form-label {
+            font-weight: 500;
+            color: var(--neutral-700);
+        }
+        
+        /* 下拉选择框样式 */
+        .form-select {
+            border-color: var(--neutral-200);
+            font-size: 0.95rem;
+        }
+        
+        /* 下拉选择框焦点样式 */
+        .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.15);
+        }
+        
+        /* Markdown预览容器样式 */
         .preview-container {
             height: 60vh;
             overflow-y: auto;
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 15px;
+            border: 1px solid var(--neutral-200);
+            border-radius: 8px;
+            padding: 20px;
             margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
         }
+        
+        /* 源文件预览区域样式 */
         .source-preview {
             max-height: 300px;
             overflow-y: auto;
             border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 15px;
+            border-radius: 8px;
+            padding: 20px;
             margin-bottom: 15px;
+            background: white;
         }
+        
+        /* 源文件预览区域图片样式 */
         .source-preview img {
             max-width: 100%;
             height: auto;
         }
+        
+        /* 源文件预览区域代码样式 */
         .source-preview pre {
             margin: 0;
             white-space: pre-wrap;
         }
+        
+        /* 下载按钮样式 */
+        .btn-download {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            border-width: 1.5px;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* 下载按钮悬停效果 */
+        .btn-download:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(to right, var(--hover-color), var(--primary-color));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 加载中遮罩层样式 */
         #loading {
             display: none;
             position: fixed;
@@ -51,83 +186,223 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1000;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+            text-align: center;
+            border: 1px solid var(--accent-purple);
+        }
+        
+        /* 加载动画图标样式 */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 15px;
+        }
+        
+        /* 标签样式 */
+        .badge {
+            font-size: 0.9em;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background-color: var(--accent-purple);
+            color: var(--neutral-900);
+            font-weight: 500;
+        }
+        
+        /* 下拉选择框样式优化 */
+        select.form-select {
+            border-radius: 6px;
+            padding: 8px 12px;
+        }
+        
+        /* 区域标题样式 */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+        
+        /* 区域标题图标样式 */
+        .section-title i {
+            color: var(--primary-color);
+        }
+        
+        /* 辅助文本样式 */
+        .text-muted {
+            color: var(--neutral-700) !important;
+            opacity: 0.85;
+        }
+        
+        /* 加载动画颜色 */
+        .spinner-border {
+            color: var(--primary-color) !important;
+        }
+        
+        /* 下拉选择框交互样式 */
+        .form-select {
+            border: 1.5px solid var(--neutral-200);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .form-select:hover {
+            border-color: var(--primary-color);
+        }
+        
+        /* 自定义滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--neutral-100);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            opacity: 0.8;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+            opacity: 0.9;
+        }
+        
+        /* 预览区域样式优化 */
+        .preview-container, .source-preview {
+            border-color: var(--neutral-200);
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* 下载按钮悬停效果优化 */
+        .btn-download:hover {
+            background: linear-gradient(to right, var(--hover-color), var(--primary-color));
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">PDF转Markdown工具</h1>
-        
-        <div class="row mb-4">
-            <div class="col-md-6 offset-md-3">
-                <div id="dropzone" class="dropzone">
-                    <p class="mb-0">拖拽文件到这里或点击选择文件</p>
-                    <input type="file" id="fileInput" class="d-none">
-                </div>
+    <div class="container mt-4 mb-5">
+        <div class="card mb-4">
+            <div class="card-body text-center py-4">
+                <h1 class="mb-3">Markdown文件生成工具</h1>
+                <p class="text-muted mb-0">支持PDF、图片、文本等多种格式转换，自动识别多语言</p>
             </div>
         </div>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8 offset-md-2">
+                        <div id="dropzone" class="dropzone">
+                            <i class="bi bi-cloud-upload"></i>
+                            <p class="mb-2">拖拽文件到这里或点击选择文件</p>
+                            <p class="text-muted small mb-0">支持PDF、图片、Word和文本文件</p>
+                            <input type="file" id="fileInput" class="d-none">
+                        </div>
+                    </div>
+                </div>
 
-        <div class="row mb-3">
-            <div class="col-md-3 offset-md-3">
-                <label for="language" class="form-label">识别语言：</label>
-                <select class="form-select" id="language">
-                    <option value="chi_sim">简体中文</option>
-                    <option value="chi_tra">繁体中文</option>
-                    <option value="eng">英文</option>
-                    <option value="jpn">日文</option>
-                    <option value="deu">德语</option>
-                    <option value="fra">法语</option>
-                    <option value="ara">阿拉伯语</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="cleanLevel" class="form-label">清理级别：</label>
-                <select class="form-select" id="cleanLevel">
-                    <option value="0">不清理（保留所有识别内容）</option>
-                    <option value="1" selected>适当清理（仅清理确定的无用内容）</option>
-                    <option value="2">强化清理（更积极地清理可能的干扰内容）</option>
-                </select>
+                <div class="row mb-4">
+                    <div class="col-md-4 offset-md-2">
+                        <label for="language" class="form-label">识别语言：</label>
+                        <select class="form-select" id="language">
+                            <option value="chi_sim">简体中文</option>
+                            <option value="chi_tra">繁体中文</option>
+                            <option value="eng">英文</option>
+                            <option value="jpn">日文</option>
+                            <option value="deu">德语</option>
+                            <option value="fra">法语</option>
+                            <option value="ara">阿拉伯语</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="cleanLevel" class="form-label">清理级别：</label>
+                        <select class="form-select" id="cleanLevel">
+                            <option value="0">不清理（保留所有识别内容）</option>
+                            <option value="1" selected>适当清理（仅清理确定的无用内容）</option>
+                            <option value="2">强化清理（更积极地清理可能的干扰内容）</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="row">
             <div class="col-md-6">
-                <h4>源文件预览</h4>
-                <div id="sourcePreview" class="source-preview"></div>
-                <div class="text-end mb-3">
-                    <button id="downloadSource" class="btn btn-sm btn-outline-primary" style="display: none;">
-                        下载源文件
-                    </button>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="section-title">
+                            <i class="bi bi-file-earmark"></i>
+                            <h5 class="mb-0">源文件预览</h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="sourcePreview" class="source-preview"></div>
+                        <div class="text-end">
+                            <button id="downloadSource" class="btn btn-sm btn-outline-primary btn-download" style="display: none;">
+                                <i class="bi bi-download me-1"></i>下载源文件
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                
-                <h4>原始文本</h4>
-                <div id="rawText" class="preview-container"></div>
-                <div class="text-end mb-3">
-                    <button id="downloadRaw" class="btn btn-sm btn-outline-primary" style="display: none;">
-                        下载原始文本
-                    </button>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <div class="section-title">
+                            <i class="bi bi-text-left"></i>
+                            <h5 class="mb-0">原始文本</h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="rawText" class="preview-container"></div>
+                        <div class="text-end">
+                            <button id="downloadRaw" class="btn btn-sm btn-outline-primary btn-download" style="display: none;">
+                                <i class="bi bi-download me-1"></i>下载原始文本
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
             <div class="col-md-6">
-                <h4>Markdown预览 <span id="languageIndicator" class="badge bg-secondary"></span></h4>
-                <div id="markdownPreview" class="preview-container"></div>
-                <div class="text-end mb-3">
-                    <button id="downloadMarkdown" class="btn btn-sm btn-outline-primary" style="display: none;">
-                        下载Markdown
-                    </button>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="section-title">
+                            <i class="bi bi-markdown"></i>
+                            <h5 class="mb-0">Markdown预览 <span id="languageIndicator" class="badge bg-secondary ms-2"></span></h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="markdownPreview" class="preview-container"></div>
+                        <div class="text-end">
+                            <button id="downloadMarkdown" class="btn btn-sm btn-outline-primary btn-download" style="display: none;">
+                                <i class="bi bi-download me-1"></i>下载Markdown
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                
-                <div id="translationContainer" style="display: none;">
-                    <h4>中文翻译</h4>
-                    <div id="translatedPreview" class="preview-container"></div>
-                    <div class="text-end mb-3">
-                        <button id="downloadTranslated" class="btn btn-sm btn-outline-primary">
-                            下载翻译
-                        </button>
+
+                <div id="translationContainer" class="card mt-4" style="display: none;">
+                    <div class="card-header">
+                        <div class="section-title">
+                            <i class="bi bi-translate"></i>
+                            <h5 class="mb-0">中文翻译</h5>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="translatedPreview" class="preview-container"></div>
+                        <div class="text-end">
+                            <button id="downloadTranslated" class="btn btn-sm btn-outline-primary btn-download">
+                                <i class="bi bi-download me-1"></i>下载翻译
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -135,19 +410,12 @@
     </div>
 
     <div id="loading">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">处理中...</span>
-        </div>
-        <p class="mt-2 mb-0">正在处理文件...</p>
+        <div class="spinner-border text-primary loading-spinner" role="status"></div>
+        <p class="mb-0">正在处理文件，请稍候...</p>
     </div>
 
-    <!-- 引入完整的 highlight.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    <!-- 引入 marked -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@4.0.0/marked.min.js"></script>
-    <!-- 引入 highlight.js 样式 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
-
     <script>
         // 配置 marked 使用 highlight.js
         marked.setOptions({
