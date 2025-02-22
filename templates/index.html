@@ -107,7 +107,8 @@
         
         /* 表单标签样式 - 用于语言选择和清理级别选择 */
         .form-label {
-            font-weight: 500;
+            font-weight: 700;  /* 改为黑粗体 */
+            font-size: 1.1rem; /* 适当增大字体 */
             color: var(--neutral-700);
         }
         
@@ -133,6 +134,47 @@
             margin-bottom: 15px;
             background: rgba(255, 255, 255, 0.8);
             font-size: 0.95rem;
+            word-wrap: break-word;       /* 允许长单词或URL地址换行到下一行 */
+            word-break: break-word;      /* 在单词内换行 */
+            white-space: pre-wrap;       /* 保留空格和换行，但允许自动换行 */
+            overflow-wrap: break-word;   /* 防止文本溢出容器 */
+        }
+        
+        /* Markdown预览区域内的段落样式 */
+        .preview-container p {
+            max-width: 100%;            /* 限制段落最大宽度 */
+            margin-bottom: 1em;         /* 段落间距 */
+            line-height: 1.6;           /* 行高 */
+        }
+        
+        /* 代码块样式 */
+        .preview-container pre {
+            white-space: pre-wrap;      /* 保留格式但允许换行 */
+            word-wrap: break-word;      /* 允许长单词换行 */
+            padding: 1em;               /* 内边距 */
+            background: #f8f9fa;        /* 背景色 */
+            border-radius: 4px;         /* 圆角 */
+            overflow-x: auto;           /* 超出时显示滚动条 */
+        }
+        
+        /* 行内代码样式 */
+        .preview-container code {
+            word-wrap: break-word;      /* 允许长单词换行 */
+            white-space: pre-wrap;      /* 保留格式但允许换行 */
+        }
+        
+        /* 表格样式 */
+        .preview-container table {
+            width: 100%;               /* 表格宽度 */
+            overflow-x: auto;          /* 超出时显示滚动条 */
+            display: block;            /* 块级显示 */
+            max-width: fit-content;    /* 适应内容宽度 */
+        }
+        
+        /* 链接样式 */
+        .preview-container a {
+            word-wrap: break-word;     /* 允许链接文本换行 */
+            overflow-wrap: break-word; /* 防止链接文本溢出 */
         }
         
         /* 源文件预览区域样式 */
