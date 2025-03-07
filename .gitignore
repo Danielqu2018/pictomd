@@ -59,6 +59,12 @@ virtualenv/
 uploads/*          # 忽略uploads目录下的所有文件
 !uploads/.gitkeep  # 保留uploads目录本身
 
+# 处理过程中产生的文件
+*_raw.txt          # 原始文本文件
+*_zh.md            # 翻译后的中文文件
+*_translated.md    # 翻译文件
+*_temp.*           # 临时文件
+
 # 文本文件
 *.txt             # 所有txt文件
 !requirements.txt # 除了requirements.txt
@@ -153,6 +159,13 @@ System Volume Information/
 *.sqlite3
 *.mdb
 *.accdb
+
+# 缓存文件
+.cache/
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
 
 # 其他
 node_modules/

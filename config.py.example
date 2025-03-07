@@ -6,8 +6,22 @@ TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Tesseract OCR
 POPPLER_PATH = r'C:\Program Files\poppler-24.08.0\Library\bin'   # Poppler 工具路径，用于PDF转图片
 
 # API 请求配置
-API_URL = "https://api.siliconflow.com/v1/chat/completions"  # API 端点
+API_URL = "https://api.siliconflow.cn/v1/chat/completions"  # API 端点
 MODEL_NAME = "deepseek-ai/DeepSeek-V3"  # 使用的模型名称
+
+# 请求参数配置
+TEMPERATURE = 0.7    # 生成文本的随机性，0-1之间
+MAX_TOKENS = 4096    # 每次请求的最大token数
+MAX_CHUNK_SIZE = 2000  # 文本块大小，适配 DeepSeek-V3
+TOP_K = 50          # 从概率分布中选择的最高k个token
+TOP_P = 0.7         # 用于nucleus sampling的概率阈值
+FREQUENCY_PENALTY = 0  # 重复惩罚系数
+
+# 请求限制配置
+API_RETRY_COUNT = 3    # 重试次数
+API_RETRY_DELAY = 5    # 重试间隔时间(秒)
+API_REQUEST_TIMEOUT = 120  # 请求超时时间(秒)
+API_RATE_LIMIT = 1     # 每秒最大请求数
 
 # OCR 语言配置
 OCR_LANG = 'chi_sim+chi_tra+eng+jpn+deu+fra+ara'  # OCR识别语言
@@ -23,20 +37,52 @@ LANGUAGE_CODES = {
     'ar': '阿拉伯语'
 }
 
-# LLM 配置
-TEMPERATURE = 0.7    # 生成文本的随机性，0-1之间
-MAX_TOKENS = 4096    # 生成文本的最大长度
-
 # 支持的文件格式
-SUPPORTED_IMAGE_FORMATS = {  # 支持的图片格式
-    '.png', '.jpg', '.jpeg', '.tiff', 
-    '.bmp', '.gif', '.webp'
+SUPPORTED_FORMATS = {
+    'document': {
+        '.pdf': 'PDF文档',
+        '.doc': 'Word文档',
+        '.docx': 'Word文档',
+        '.txt': '文本文件',
+        '.rtf': 'RTF文档',
+        '.odt': 'OpenDocument文档'
+    },
+    'image': {
+        '.png': 'PNG图片',
+        '.jpg': 'JPEG图片',
+        '.jpeg': 'JPEG图片',
+        '.tiff': 'TIFF图片',
+        '.bmp': 'BMP图片',
+        '.gif': 'GIF图片',
+        '.webp': 'WebP图片'
+    },
+    'presentation': {
+        '.ppt': 'PowerPoint演示文稿',
+        '.pptx': 'PowerPoint演示文稿'
+    },
+    'spreadsheet': {
+        '.xls': 'Excel表格',
+        '.xlsx': 'Excel表格',
+        '.csv': 'CSV文件'
+    },
+    'ebook': {
+        '.epub': 'EPUB电子书',
+        '.mobi': 'MOBI电子书'
+    }
 }
 
-SUPPORTED_TEXT_FORMATS = {  # 支持的文本格式
-    '.txt', '.csv', '.json', '.xml', 
-    '.html', '.md', '.rst',
-    '.doc', '.docx'  # Word文档格式
+# 缓存配置
+CACHE_CONFIG = {
+    'REDIS_HOST': 'localhost',
+    'REDIS_PORT': 6379,
+    'REDIS_DB': 0,
+    'CACHE_EXPIRE_TIME': 3600 * 24  # 24小时
+}
+
+# 批量处理配置
+BATCH_CONFIG = {
+    'MAX_BATCH_FILES': 10,
+    'MAX_TOTAL_SIZE': 100 * 1024 * 1024  # 100MB
 }
 
 # 语言清理配置
@@ -72,4 +118,8 @@ OCR_CONFIG = {
     'deu': '--oem 1 --psm 3 -c preserve_interword_spaces=1',      # 德文保留词间空格
     'fra': '--oem 1 --psm 3 -c preserve_interword_spaces=1',      # 法文保留词间空格
     'ara': '--oem 1 --psm 3 -c preserve_interword_spaces=1'       # 阿拉伯文保留词间空格
-} 
+}
+
+# 文本处理配置
+CHUNK_OVERLAP = 100       # 文本块之间的重叠字符数
+MIN_CHUNK_SIZE = 500      # 最小文本块大小 

@@ -1,183 +1,240 @@
-# Markdown 文件生成工具
+# PDF to Markdown Converter
 
-一个将 PDF、图片、文本 文档转换为 Markdown 格式的工具，支持多语言 OCR 识别，自动翻译，并使用大语言模型优化输出格式。
+一个功能强大的文档转换工具，支持将 PDF、图片和其他格式文档转换为 Markdown 格式。
 
-## 主要功能
+## 功能特点
 
-- 支持多种输入格式：
-  - PDF文档（扫描版和文本版）
-  - 图片文件（PNG, JPG, JPEG, TIFF, BMP, GIF, WEBP）
-  - Word文档（`.doc`, `.docx`）
-  - 文本文件（`.txt`, `.csv`, `.json`, `.xml`, `.html`, `.md`, `.rst`）
-- 多语言 OCR 识别：
-  - 简体中文
-  - 繁体中文
-  - 英文
-  - 日文
-  - 德语
-  - 法语
-  - 阿拉伯语
-- 三级文本清理选项：
-  - 不清理：保留所有OCR识别内容
-  - 适当清理：仅清理确定的无用内容
-  - 强化清理：更积极地清理可能的干扰内容
-- 使用 DeepSeek-V3 模型生成结构化 Markdown
-- 保存中间结果，便于检查和修正
-- 自动翻译功能：
-  - 自动检测文档语言
-  - 非中文文档自动翻译成中文
-  - 保留原文格式和结构
-- Web界面支持：
-  - 拖拽上传文件
-  - 实时预览源文件
-  - 并排显示原文和翻译
-  - 支持语言和清理级别选择
-  - 所有文件可下载保存
-
-## 安装说明
-
-### 1. 安装 Python 依赖
-
-首先创建并激活虚拟环境（推荐）：
-```bash
-# 创建虚拟环境
-python -m venv venv
-
-# 激活虚拟环境
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
-```
-
-安装所有依赖：
-```bash
-pip install -r requirements.txt
-```
-
-### 2. 安装系统依赖
-
-#### Windows 系统：
-
-1. **Tesseract OCR**
-   - 下载：[Tesseract-OCR installer](https://github.com/UB-Mannheim/tesseract/wiki)
-   - 安装到：`C:\Program Files\Tesseract-OCR`
-   - 下载语言包：
-     - 简体中文：`chi_sim.traineddata`
-     - 繁体中文：`chi_tra.traineddata`
-     - 日文：`jpn.traineddata`
-     - 德语：`deu.traineddata`
-     - 法语：`fra.traineddata`
-     - 阿拉伯语：`ara.traineddata`
-
-2. **Poppler**
-   - 下载：[poppler-windows](https://github.com/oschwartz10612/poppler-windows/releases/)
-   - 解压到：`C:\Program Files\poppler-24.08.0`
-   - 将 bin 目录添加到系统环境变量 Path 中
-
-### 3. 配置
-
-1. 复制 `config.py.example` 为 `config.py`
-2. 修改 `config.py` 中的配置：
-   ```python
-   # 设置你的 API key
-   API_KEY = "your_api_key_here"
-   
-   # 如果安装路径不同，修改以下配置
-   TESSERACT_CMD = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-   POPPLER_PATH = r'C:\Program Files\poppler-24.08.0\Library\bin'
-   ```
-
-## 使用方法
-
-### Web界面（推荐）：
-
-1. 启动Web服务：
-   ```bash
-   python web_app.py
-   ```
-
-2. 打开浏览器访问：`http://localhost:5000`
-
-3. 在网页上：
-   - 选择识别语言
-   - 选择清理级别
-   - 拖拽或选择文件上传
-   - 等待处理完成
-   - 查看源文件预览、原始文本和Markdown结果
-   - 如果是非中文文档，还可以查看中文翻译
-   - 可以下载所有处理结果文件
-
-### 命令行界面：
-
-1. 准备输入文件：
-   - 将要转换的文件放在程序同目录下
-   - 支持PDF、图片或文本文件
-
-2. 运行程序：
-   ```bash
-   python pdf_to_markdown.py
-   ```
-
-3. 按提示操作：
-   - 输入文件名（不带后缀）
-   - 选择清理级别（0-2）
-   - 等待处理完成
-
-4. 查看结果：
-   - `example.md`：转换后的Markdown文件
-   - `example_raw.txt`：清理后的原始文本
-   - `example_zh.md`：中文翻译（如果原文不是中文）
-
-## 文件说明
-
-处理过程中会生成以下文件：
-- `[时间戳]_[原文件名]`：上传的原始文件
-- `[时间戳]_[原文件名]_raw.txt`：OCR识别并清理后的原始文本
-- `[时间戳]_[原文件名].md`：转换后的Markdown文件
-- `[时间戳]_[原文件名]_zh.md`：中文翻译文件（如果原文不是中文）
-
-所有生成的文件都会保留在 `uploads` 目录中，可以通过Web界面下载或直接从目录访问。
+- 多格式支持：PDF、Word、图片、演示文稿、电子表格、电子书等
+- OCR 文字识别：支持扫描版 PDF 和图片文件
+- 多语言支持：中文、英文、日文等多种语言
+- 自动翻译：非中文文档自动翻译为中文
+- 实时进度反馈：通过 WebSocket 提供处理进度
+- 结果缓存：使用 Redis 缓存处理结果
+- 批量处理：支持多文件同时处理
+- 格式优化：智能优化 Markdown 格式
 
 ## 项目结构
 ```
 .
-├── pdf_to_markdown.py # 主程序
-├── web_app.py        # Web应用
-├── config.py         # 配置文件
-├── utils.py         # 工具函数
-├── templates/       # HTML模板
-│   └── index.html  # 主页面
-├── uploads/        # 上传和处理文件目录
-├── README.md        # 说明文档
-└── .gitignore      # Git忽略配置
+├── pdf_to_markdown.py  # 主程序
+├── web_app.py         # Web应用
+├── config.py          # 配置文件
+├── utils.py          # 工具函数
+├── templates/        # HTML模板
+│   └── index.html   # 主页面
+├── static/          # 静态资源
+│   ├── css/        # 样式文件
+│   └── js/         # JavaScript文件
+├── uploads/         # 上传和处理文件目录
+├── requirements.txt  # 依赖清单
+├── README.md         # 说明文档
+└── .gitignore       # Git忽略配置
 ```
 
-## 开发环境
+## 系统要求
 
-- Python 3.7+
-- Windows 10/11
-- Tesseract-OCR 5.x
-- Poppler 24.x
-- Flask 2.x
+- Python 3.8+
+- Tesseract OCR
+- Poppler Utils
+- Redis Server
+
+## 安装步骤
+
+1. 克隆仓库：
+```bash
+git clone <repository-url>
+cd pdf-to-markdown
+```
+
+2. 安装 Python 依赖：
+```bash
+pip install -r requirements.txt
+```
+
+3. 安装系统依赖：
+
+Windows:
+- [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki)
+- [Poppler](https://github.com/oschwartz10612/poppler-windows/releases)
+- [Redis](https://github.com/microsoftarchive/redis/releases)
+
+Linux (Ubuntu/Debian):
+```bash
+sudo apt-get update
+sudo apt-get install tesseract-ocr poppler-utils redis-server
+```
+
+4. 配置：
+- 复制 `config.py.example` 为 `config.py`
+- 修改配置文件中的路径和 API 密钥
+
+## 使用方法
+
+### 命令行方式
+
+```bash
+python pdf_to_markdown.py
+```
+按提示输入文件名和处理选项。
+
+### Web 界面
+
+1. 启动服务器：
+```bash
+python web_app.py
+```
+
+2. 访问 Web 界面：
+- 打开浏览器访问 `http://localhost:5000`
+- 上传文件并选择处理选项
+- 等待处理完成后下载结果
+
+### 下载处理结果
+
+处理完成后可以通过以下方式下载文件：
+
+1. 直接下载链接：
+```
+http://localhost:5000/download/<file_id>/<file_type>
+```
+
+2. 可用的文件类型：
+- `source`: 原始上传文件
+- `raw`: 提取的原始文本
+- `markdown`: 转换后的 Markdown 文件
+- `translated`: 翻译后的中文版本（如果有）
+
+3. 示例：
+```python
+# 下载 Markdown 文件
+file_id = "20250224_154538"
+download_url = f"http://localhost:5000/download/{file_id}/markdown"
+
+# 下载原始文本
+raw_text_url = f"http://localhost:5000/download/{file_id}/raw"
+
+# 下载翻译后的文件（如果存在）
+translated_url = f"http://localhost:5000/download/{file_id}/translated"
+```
+
+4. 使用 curl 下载：
+```bash
+# 下载 Markdown 文件
+curl -O http://localhost:5000/download/20250224_154538/markdown
+
+# 下载原始文本
+curl -O http://localhost:5000/download/20250224_154538/raw
+```
+
+### 批量处理
+
+使用 POST 请求访问 `/batch_upload` 接口，支持同时处理多个文件。
+
+## 支持的文件格式
+
+- 文档：
+  - PDF (.pdf)
+  - Word (.doc, .docx)
+  - 文本 (.txt, .rtf, .odt)
+- 图片：
+  - PNG (.png)
+  - JPEG (.jpg, .jpeg)
+  - TIFF (.tiff)
+  - BMP (.bmp)
+  - GIF (.gif)
+  - WebP (.webp)
+- 演示文稿：
+  - PowerPoint (.ppt, .pptx)
+- 电子表格：
+  - Excel (.xls, .xlsx)
+  - CSV (.csv)
+- 电子书：
+  - EPUB (.epub)
+  - MOBI (.mobi)
+
+## API 使用
+
+### 单文件处理
+```python
+import requests
+
+url = 'http://localhost:5000/upload'
+files = {'file': open('example.pdf', 'rb')}
+data = {'cleanLevel': 1, 'language': 'chi_sim'}
+response = requests.post(url, files=files, data=data)
+```
+
+### 批量处理
+```python
+import requests
+
+url = 'http://localhost:5000/batch_upload'
+files = [
+    ('files[]', open('file1.pdf', 'rb')),
+    ('files[]', open('file2.pdf', 'rb'))
+]
+response = requests.post(url, files=files)
+```
+
+## 配置说明
+
+在使用前需要正确配置以下文件：
+
+1. 复制 `config.py.example` 为 `config.py`
+2. 修改 `config.py` 中的配置：
+   - 设置 API 密钥
+   - 配置 Tesseract OCR 路径
+   - 配置 Poppler 路径
+   - 根据需要调整其他参数
+
+主要配置项说明：
+- `API_KEY`: API访问密钥
+- `TESSERACT_CMD`: Tesseract OCR执行文件路径
+- `POPPLER_PATH`: Poppler工具路径
+- `OCR_LANG`: OCR支持的语言
+
+## 故障排除
+
+1. OCR 识别问题：
+   - 检查 Tesseract 安装和路径配置
+   - 确保图片质量良好
+
+2. PDF 处理问题：
+   - 检查 Poppler 安装和路径配置
+   - 确认 PDF 文件未加密
+
+3. 缓存问题：
+   - 确保 Redis 服务正在运行
+   - 检查 Redis 连接配置
+
+4. API 调用问题：
+   - 验证 API 密钥是否正确
+   - 检查网络连接
+
+## 开发计划
+
+- [ ] 添加更多文件格式支持
+- [ ] 优化处理速度
+- [ ] 添加用户界面
+- [ ] 支持自定义模板
+- [ ] 添加批量导出功能
+
+## 贡献指南
+
+欢迎提交 Pull Request 或创建 Issue。
+
+## 许可证
+
+MIT License
+
+## 作者
+
+[Your Name]
 
 ## 更新日志
 
-### v1.2.0 (2025-03)
-- ✨ 添加Web界面支持
-- 🌍 支持多语言OCR识别
-- 🔄 添加自动翻译功能
-- 📱 优化用户交互体验
-- 💾 保留所有处理文件
-- 📥 支持文件下载
-
-### v1.1.0 (2025-03)
-- ✨ 添加三级文本清理选项
-- 🔧 优化文本处理逻辑
-- 📚 完善文档说明
-
-### v1.0.0 (2025-03)
-- 🎯 支持中英文 PDF 和图片转换
-- 📝 添加文本清理功能
-- 🔧 完善错误处理
-- 📚 支持多种输入格式
+### v1.0.0 (2024-02-24)
+- 初始版本发布
+- 支持基本文件格式转换
+- 添加 Web 界面
+- 实现批量处理功能
